@@ -1,0 +1,83 @@
+NetWorkSetting:
+  exp_name: "RIFNet"
+  seed: 1
+  has_cuda: True
+  deviceID: 0
+  dataLoader:
+    num_workers: 8
+    ModelSet: "ModelNet40"
+  test:
+    batch_size: 16
+    shuffle: True
+    drop_last: False
+  train:
+    loadCheckpoints: True
+    batch_size: 16
+    shuffle: True
+    drop_last: False
+    is_train: True
+    epochs: 300
+    use_sgd: False
+    lr: 0.001
+    momentum: 0.9
+    resume: False
+    start_iter: 0
+    weight_decay: 1e-4
+
+  PointCloud:
+    num_points: 1024
+    dim: 3
+    K: 15
+  SphericalHarmonics:
+    maxDegree: 8
+  classification:
+    globalFeatureSize: 1024
+    num_class: 40
+RIFNetWork:
+  PointNetHead:
+    mlp: [1024]
+  FConnectLayer:
+    Lin1:
+      in_channel: 1024
+      out_channel: 512
+      bn: 512
+      dropout: 0.5
+    Lin2:
+      in_channel: 512
+      out_channel: 256
+      bn: 256
+      dropout: 0.5
+    Lin3:
+      in_channel: 256
+      out_channel: 40
+RIFAdvanceNetWork:
+  PointNetHead:
+    mlp: [64, 64, 64]
+  Set_Abstraction_Module:
+    SAM1:
+      in_channel: 64
+      mlp: [64, 64, 128]
+      ratio: 0.5
+      K: 10
+    SAM2:
+      in_channel: 128
+      mlp: [128, 128, 256]
+      ratio: 0.25
+      K: 10
+  GlobalSAModule:
+    in_channel: 256
+    mlp: [256, 512, 1024]
+  FConnectLayer:
+    Lin1:
+      in_channel: 1024
+      out_channel: 512
+      dropout: 0.5
+      bn: 512
+    Lin2:
+      in_channel: 512
+      out_channel: 256
+      dropout: 0.5
+      bn: 256
+    Lin3:
+      in_channel: 256
+      out_channel: 40
