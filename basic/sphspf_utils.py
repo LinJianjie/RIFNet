@@ -52,16 +52,13 @@ class GATConv(nn.Module):
             edge_index_self_loop = torch.cat([index, edge_index], dim=2)
             edge_index_self_loop = edge_index.clone().detach()
             index = index.repeat(1, 1, edge_index_self_loop.shape[2])
-            # pair_index = [index, edge_index_self_loop]
             x = x.permute(0, 2, 1)  # has B*N*D
             features_expand = x.unsqueeze(dim=3)
             features_expand = features_expand.repeat(1, 1, 1, edge_index_self_loop.shape[2])  # B*N*D*k
-            # features_knn = torch.cat(tuple([x[row] for row in rows]), dim=0)
             features_nn = torch.cat(
                 [x[i, edge_index_self_loop[i, :, :], :] for i in torch.arange(edge_index_self_loop.shape[0])], dim=0)
             features_nn = features_nn.reshape(edge_index_self_loop.shape[0], edge_index_self_loop.shape[1],
                                               edge_index_self_loop.shape[2], -1)  # B*N*K*D
-            # features_nn = features_nn
             features_nn = features_nn.permute(0, 1, 3, 2)  # B*N*D*k
             cat_features = torch.cat([features_expand, features_nn], dim=2).permute(0, 2, 1, 3)
             att = F.leaky_relu(self.attention[0](cat_features), negative_slope=self.alpha)
@@ -106,14 +103,6 @@ class featureTransformation(nn.Module):
 
     def forward(self, x, y, edge_index=None):
         B, N, D = x.shape
-        # for i in range(int(D / 4)):
-        #     x1 = x[:, :, 4 * i:4 * (i + 1)]
-        #     x1 = x1.transpose(2, 1)
-        #     x2 = F.relu(self.bn1(self.conv1(x1)))
-        #     x2 = x2.unsqueeze(dim=3)
-        #     y.append(x2)
-        # maxpol = torch.max(x2, 1, keepdim=True)[0]
-        # y.append(maxpol)
         x1 = torch.split(x, FPH_DIM, dim=2)
         x1 = torch.stack(x1, dim=3)  # B,N,4, k
         y1 = y.unsqueeze(dim=3)
@@ -139,16 +128,6 @@ class featureTransformation3D(nn.Module):
 
         self.mlp_convs = nn.ModuleList()
         self.mlp_bns = nn.ModuleList()
-
-        # self.bn1 = nn.BatchNorm3d(64)
-        # self.bn2 = nn.BatchNorm3d(out_channel)
-        #
-        # self.conv1 = nn.Sequential(nn.Conv3d(in_channel, 64, kernel_size=1, bias=False),
-        #                            self.bn1,
-        #                            nn.ReLU())
-        # self.conv2 = nn.Sequential(nn.Conv3d(64, out_channel, kernel_size=1, bias=False),
-        #                            self.bn2,
-        #                            nn.ReLU())
         last_channel = in_channel
         for out_channel_ in mlp:
             self.mlp_convs.append(nn.Conv3d(last_channel, out_channel_, 1, bias=False))
@@ -156,14 +135,6 @@ class featureTransformation3D(nn.Module):
             last_channel = out_channel_
 
     def forward(self, x, y):
-        # for i in range(int(D / 4)):
-        #     x1 = x[:, :, 4 * i:4 * (i + 1)]
-        #     x1 = x1.transpose(2, 1)
-        #     x2 = F.relu(self.bn1(self.conv1(x1)))
-        #     x2 = x2.unsqueeze(dim=3)
-        #     y.append(x2)
-        # maxpol = torch.max(x2, 1, keepdim=True)[0]
-        # y.append(maxpol)
         x1 = torch.split(x, FPH_DIM, dim=3)  # B,N,K,D(4*K-1) --> B,N,K,4,K-1
         x1 = torch.stack(x1, dim=4)  # --> B,N,K,4,K-1
         if y is not None:
@@ -172,8 +143,7 @@ class featureTransformation3D(nn.Module):
             x3 = torch.cat([x1, y1], dim=3).permute(0, 3, 2, 1, 4)  # B,N,K,1+4,K-1 --> B,1+4,K,N,K-1
         else:
             x3 = x1.permute(0, 3, 2, 1, 4)  # B,N,K,4,K-1 --> B,4,K,N,K-1
-        # x3 = self.conv1(x3)  # B,64,K,N,K-1
-        # x3 = self.conv2(x3)  # B,64,K,N,K-1
+
         for i, conv3d in enumerate(self.mlp_convs):
             bn = self.mlp_bns[i]
             x3 = F.relu(bn(conv3d(x3)))

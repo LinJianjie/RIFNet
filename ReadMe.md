@@ -45,6 +45,6 @@ If you find our work useful for your research, please cite:
 ```
 
 ### License
-This project Code is released under the MIT License (refer to the LICENSE file for details).
+This project Code is released under the GPLv2 License (refer to the LICENSE file for details).
 
 

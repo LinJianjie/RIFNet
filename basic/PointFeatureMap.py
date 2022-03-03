@@ -8,7 +8,7 @@ open3d is using  -D_GLIBCXX_USE_CXX11_ABI=1
 """
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 # import basic.EstimateNormals as EN
-from basic.importData import ModelNet40SphericalHarmonics
+from basic.createDataset import ModelNet40SphericalHarmonics
 from torch.utils.data import DataLoader
 from basic.common import TorchClusteringKNN, BatchKnn
 import numpy as np

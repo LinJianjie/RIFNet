@@ -71,14 +71,6 @@ class SphHarm:
         r = r.reshape(self.batchSize, self.nPoints, 1)
         theta_numpy = theta.data.numpy()
         phi_numpy = phi.data.numpy()
-        # for n in range(self.maxSHDegree + 1):
-        #     for m in range(n + 1):
-        #         ynm_plus, ynm_neg = SH.getShRealHarm(m, n, theta_numpy, phi_numpy)  # [batch*N, 1]
-        #         ynm_plus = ynm_plus.reshape(self.batchSize, self.nPoints, 1)
-        #         A.append(ynm_plus)
-        #         if m > 0:
-        #             ynm_neg = ynm_neg.reshape(self.batchSize, self.nPoints, 1)
-        #             A.append(ynm_neg)
         order = np.concatenate([np.arange(n + 1) for n in range(self.maxSHDegree + 1)])
         degree = np.concatenate([np.full(n + 1, n) for n in range(self.maxSHDegree + 1)])
         sharmCoeff = torch.from_numpy(self.getShRealHarm(order, degree, theta_numpy, phi_numpy)).float()
